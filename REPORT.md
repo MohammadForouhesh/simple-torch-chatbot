@@ -184,3 +184,15 @@ Now we have our model implemented, we can begin training it.
 First, we'll initialize our model. As mentioned before, the input and output dimensions are defined by the size of the vocabulary. The embedding dimesions and dropout for the encoder and decoder can be different, but the number of layers and the size of the hidden/cell states must be the same. 
 
 We then define the encoder, decoder and then our Seq2Seq model, which we place on the `device`.
+
+# Simple Test Case
+
+You can run the following command:
+
+```bash
+python run.py
+```
+
+Here I included a sample for convinience:
+
+![](./assets/testcase.png)
