@@ -16,7 +16,7 @@ $$h_t = \text{EncoderRNN}(e(x_t), h_{t-1})$$
 
 We're using the term RNN generally here, it could be any recurrent architecture, such as an *LSTM* (Long Short-Term Memory) or a *GRU* (Gated Recurrent Unit). 
 
-Here, we have $X = \{x_1, x_2, ..., x_T\}$, where $x_1 = \text{<sos>}, x_2 = \text{guten}$, etc. The initial hidden state, $h_0$, is usually either initialized to zeros or a learned parameter.
+Here, we have $X = \{x_1, x_2, ..., x_T\}$, x_1 = \text{guten}$, etc. The initial hidden state, $h_0$, is usually either initialized to zeros or a learned parameter.
 
 Once the final word, $x_T$, has been passed into the RNN via the embedding layer, we use the final hidden state, $h_T$, as the context vector, i.e. $h_T = z$. This is a vector representation of the entire source sentence.
 
@@ -63,19 +63,19 @@ Using a multi-layer RNN also means we'll also need an initial hidden state as in
 
 Without going into too much detail about LSTMs (see [this](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) blog post to learn more about them), all we need to know is that they're a type of RNN which instead of just taking in a hidden state and returning a new hidden state per time-step, also take in and return a *cell state*, $c_t$, per time-step.
 
-$$\begin{align*}
+$$\begin{aligned}
 h_t &= \text{RNN}(e(x_t), h_{t-1})\\
 (h_t, c_t) &= \text{LSTM}(e(x_t), h_{t-1}, c_{t-1})
-\end{align*}$$
+\end{aligned}$$
 
 We can just think of $c_t$ as another type of hidden state. Similar to $h_0^l$, $c_0^l$ will be initialized to a tensor of all zeros. Also, our context vector will now be both the final hidden state and the final cell state, i.e. $z^l = (h_T^l, c_T^l)$.
 
 Extending our multi-layer equations to LSTMs, we get:
 
-$$\begin{align*}
+$$\begin{aligned}
 (h_t^1, c_t^1) &= \text{EncoderLSTM}^1(e(x_t), (h_{t-1}^1, c_{t-1}^1))\\
 (h_t^2, c_t^2) &= \text{EncoderLSTM}^2(h_t^1, (h_{t-1}^2, c_{t-1}^2))
-\end{align*}$$
+\end{aligned}$$
 
 Note how only our hidden state from the first layer is passed as input to the second layer, and not the cell state.
 
@@ -112,10 +112,10 @@ Next, we'll build our decoder, which will also be a 2-layer (4 in the paper) LST
 
 The `Decoder` class does a single step of decoding, i.e. it ouputs single token per time-step. The first layer will receive a hidden and cell state from the previous time-step, $(s_{t-1}^1, c_{t-1}^1)$, and feeds it through the LSTM with the current embedded token, $y_t$, to produce a new hidden and cell state, $(s_t^1, c_t^1)$. The subsequent layers will use the hidden state from the layer below, $s_t^{l-1}$, and the previous hidden and cell states from their layer, $(s_{t-1}^l, c_{t-1}^l)$. This provides equations very similar to those in the encoder.
 
-$$\begin{align*}
+$$\begin{aligned}
 (s_t^1, c_t^1) = \text{DecoderLSTM}^1(d(y_t), (s_{t-1}^1, c_{t-1}^1))\\
 (s_t^2, c_t^2) = \text{DecoderLSTM}^2(s_t^1, (s_{t-1}^2, c_{t-1}^2))
-\end{align*}$$
+\end{aligned}$$
 
 Remember that the initial hidden and cell states to our decoder are our context vectors, which are the final hidden and cell states of our encoder from the same layer, i.e. $(s_0^l,c_0^l)=z^l=(h_T^l,c_T^l)$.
 
@@ -151,7 +151,7 @@ The first thing we do in the `forward` method is to create an `outputs` tensor t
 
 We then feed the input/source sentence, `src`, into the encoder and receive out final hidden and cell states.
 
-The first input to the decoder is the start of sequence (`<sos>`) token. As our `trg` tensor already has the `<sos>` token appended (all the way back when we defined the `init_token` in our `TRG` field) we get our $y_1$ by slicing into it. We know how long our target sentences should be (`max_len`), so we loop that many times. The last token input into the decoder is the one **before** the `<eos>` token - the `<eos>` token is never input into the decoder. 
+We know how long our target sentences should be (`max_len`), so we loop that many times. 
 
 During each iteration of the loop, we:
 - pass the input, previous hidden and previous cell states ($y_t, s_{t-1}, c_{t-1}$) into the decoder
@@ -165,17 +165,17 @@ Once we've made all of our predictions, we return our tensor full of predictions
 
 **Note**: our decoder loop starts at 1, not 0. This means the 0th element of our `outputs` tensor remains all zeros. So our `trg` and `outputs` look something like:
 
-$$\begin{align*}
-\text{trg} = [<sos>, &y_1, y_2, y_3, <eos>]\\
-\text{outputs} = [0, &\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-\end{align*}$$
+$$\begin{aligned}
+\text{trg} = [&y_1, y_2, y_3]\\
+\text{outputs} = [0, &\hat{y}_1, \hat{y}_2, \hat{y}_3]
+\end{aligned}$$
 
 Later on when we calculate the loss, we cut off the first element of each tensor to get:
 
-$$\begin{align*}
-\text{trg} = [&y_1, y_2, y_3, <eos>]\\
-\text{outputs} = [&\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-\end{align*}$$
+$$\begin{aligned}
+\text{trg} = [&y_1, y_2, y_3]\\
+\text{outputs} = [&\hat{y}_1, \hat{y}_2, \hat{y}_3]
+\end{aligned}$$
 
 # Training the Seq2Seq Model
 
